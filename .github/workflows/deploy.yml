@@ -1,0 +1,44 @@
+name: Deploy Vue Homework to Pages
+
+on:
+  # 當推送到 main 分支時觸發 (如果您的預設分支是 master，請改為 master)
+  push:
+    branches: ["main"]
+
+# 設定 GitHub Pages 所需的權限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  # 第一階段：安裝依賴並編譯
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install
+      - name: Build project
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist # Vite 預設輸出的資料夾是 dist
+
+  # 第二階段：部署到 GitHub Pages
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
